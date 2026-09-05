@@ -35,6 +35,4 @@ const server = http.createServer((req, res) => {
   res.end(JSON.stringify({ error: 'Not found' }))
 })
 
-server.listen(PORT, () => {
-  console.log(`Sneaks server on port ${PORT}`)
-})
+server.listen(PORT, () => console.log(`Sneaks server on port ${PORT}`))
