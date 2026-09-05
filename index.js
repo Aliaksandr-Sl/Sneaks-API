@@ -1,17 +1,40 @@
-const express = require('express');
-const app = express();
-const mongoose = require('mongoose');
-require('./routes/sneaks.routes.js')(app);
-require('dotenv').config();
-const SneaksAPI = require('./controllers/sneaks.controllers.js');
+const Sneaks = require('./sneaks-api')
+const http = require('http')
 
-var port = process.env.PORT || 4000;
-mongoose.Promise = global.Promise;
+const sneaks = new Sneaks()
+const PORT = process.env.PORT || 3000
 
-/*app.listen(port, function () {
-  console.log(`Sneaks app listening on port `, port);
- });*/
+const server = http.createServer((req, res) => {
+  const url = new URL(req.url, `http://localhost:${PORT}`)
 
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Content-Type', 'application/json')
 
-module.exports = app;
-module.exports = SneaksAPI;
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204)
+    res.end()
+    return
+  }
+
+  const idMatch = url.pathname.match(/^\/id\/(.+)$/)
+  if (idMatch) {
+    const styleId = decodeURIComponent(idMatch[1])
+    sneaks.getProducts(styleId, 1, (err, products) => {
+      if (err || !products?.length) {
+        res.writeHead(404)
+        res.end(JSON.stringify(null))
+        return
+      }
+      res.writeHead(200)
+      res.end(JSON.stringify(products[0]))
+    })
+    return
+  }
+
+  res.writeHead(404)
+  res.end(JSON.stringify({ error: 'Not found' }))
+})
+
+server.listen(PORT, () => {
+  console.log(`Sneaks server on port ${PORT}`)
+})
